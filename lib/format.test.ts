@@ -1,5 +1,5 @@
 import {describe,it,expect} from 'vitest';
-import {money,parseAmount} from './amount';
+import {money,parseAmount} from './format';
 
 describe('parseAmount (formato es-AR)',()=>{
   it.each([

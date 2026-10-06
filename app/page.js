@@ -1,7 +1,7 @@
 'use client';
 import {useEffect,useMemo,useState} from 'react';
 import {Plus,Wallet,Briefcase,User,Trash2,Pencil,Search,ChevronDown} from 'lucide-react';
-import {money,parseAmount} from '../lib/amount';
+import {money,parseAmount} from '../lib/format';
 
 const CATS={Personal:{'Alimentación':['Supermercado','Restaurante','Delivery','Cafetería','Otros'],'Hogar':['Servicios','Compras','Mantenimiento','Otros'],'Automóvil':['Combustible','Seguro','Patente','Mantenimiento','Otros'],'Salud':['Medicamentos','Consultas','Estudios','Otros'],'Familia':['Colegio','Ropa','Actividades','Otros'],'Ocio':['Suscripciones','Salidas','Entretenimiento','Otros'],'Otros':['Otros']},'Carpintería El Roble':{'Materiales':['Melamina','Madera','Herrajes','Otros'],'Herramientas':['Herramientas','Insumos','Mantenimiento','Otros'],'Movilidad':['Combustible','Fletes','Peajes','Otros'],'Servicios':['Servicios','Taller','Otros'],'Otros':['Otros']}};
 const today=()=>new Date().toISOString().slice(0,10);
