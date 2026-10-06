@@ -5,14 +5,16 @@ App de registro de gastos personales y de Carpintería El Roble. Next.js App Rou
 ## Comandos
 
 - `npm install` (usa `package-lock.json`; las deps están pineadas a versiones exactas)
+- `npm test` → Vitest (tests de la lógica de importes). `npm run test:watch` para modo interactivo.
 - `npm run dev` → http://localhost:3000
 - `npm run build` / `npm start`
-- No hay tests, lint, typecheck ni CI. La única verificación real es levantar `npm run dev` y probar en el navegador.
+- Hay tests, pero **no hay lint, typecheck ni CI**. Para cambios de UI, la verificación sigue siendo manual en el navegador.
 - **Requiere Node ≥ 20.9** (Next 16 lo exige). El `node` del sistema es v18 y NO sirve: hay un Node 22 LTS en `~/.local/share/node/bin` que se agrega al PATH desde `~/.zshrc`. Si `npm` falla con `EBADENGINE`, es que estás usando el Node viejo.
 
 ## Arquitectura (no busques más de lo que hay)
 
-- **Toda la app vive en `app/page.js`**, un único componente cliente (`'use client'`). No hay `components/`, ni API routes, ni base de datos.
+- La UI vive en `app/page.js`, un único componente cliente (`'use client'`). La lógica pura de importes (`money`, `parseAmount`) está en `lib/amount.js` para poder testearla sin React.
+- No hay `components/`, ni API routes, ni base de datos.
 - `app/layout.js` es el layout raíz. `app/globals.css` es la única hoja de estilos.
 - Persistencia: `localStorage` bajo la clave **`gastos-v1`**. Sin backend ni sincronización.
 
@@ -20,7 +22,7 @@ App de registro de gastos personales y de Carpintería El Roble. Next.js App Rou
 
 - `CATS` (arriba de `app/page.js`) es la **única fuente de verdad** de la cascada ámbito → categoría → subcategoría. Agregar o renombrar categorías se hace ahí; los `useEffect` de sincronización corrigen el form solos.
 - Las claves de ámbito se comparan por igualdad exacta: `'Personal'` y `'Carpintería El Roble'` (con tilde). No las normalices ni traduzcas.
-- El parseo del importe en `save()` está hecho para formato **es-AR**: quita lo que no sea dígito/coma/punto, elimina los puntos (separador de miles) y convierte la coma en decimal. **No lo reemplaces por `parseFloat`**: rompería los importes con punto de miles.
+- El parseo de importes vive en `lib/amount.js` (`parseAmount`) y está cubierto por `lib/amount.test.js`. Regla **es-AR**: el último separador manda como decimal y un punto con exactamente 3 dígitos detrás se toma como miles. **No lo reemplaces por `parseFloat`** ni borres los tests: el bug histórico convertía `"1.5"` en `15`.
 - UI, montos y fechas en **es-AR / ARS** (`Intl.NumberFormat('es-AR', {currency:'ARS'})`). Los textos visibles van en español.
 - Los IDs de gasto se generan con `crypto.randomUUID()`.
 

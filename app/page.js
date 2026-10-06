@@ -1,11 +1,10 @@
 'use client';
 import {useEffect,useMemo,useState} from 'react';
 import {Plus,Wallet,Briefcase,User,Trash2,Pencil,Search,ChevronDown} from 'lucide-react';
+import {money,parseAmount} from '../lib/amount';
 
 const CATS={Personal:{'Alimentación':['Supermercado','Restaurante','Delivery','Cafetería','Otros'],'Hogar':['Servicios','Compras','Mantenimiento','Otros'],'Automóvil':['Combustible','Seguro','Patente','Mantenimiento','Otros'],'Salud':['Medicamentos','Consultas','Estudios','Otros'],'Familia':['Colegio','Ropa','Actividades','Otros'],'Ocio':['Suscripciones','Salidas','Entretenimiento','Otros'],'Otros':['Otros']},'Carpintería El Roble':{'Materiales':['Melamina','Madera','Herrajes','Otros'],'Herramientas':['Herramientas','Insumos','Mantenimiento','Otros'],'Movilidad':['Combustible','Fletes','Peajes','Otros'],'Servicios':['Servicios','Taller','Otros'],'Otros':['Otros']}};
 const today=()=>new Date().toISOString().slice(0,10);
-function money(n){return new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS',maximumFractionDigits:0}).format(n)}
-function parseAmount(raw){let s=String(raw??'').replace(/[^0-9.,]/g,''); if(!s)return NaN; const hasC=s.includes(','),hasD=s.includes('.'); if(hasC&&hasD){const dec=s.lastIndexOf(',')>s.lastIndexOf('.')?',':'.'; s=s.split(dec===','?'.':',').join('').replace(dec,'.')}else if(hasC){const p=s.split(','); s=p.length>2?p.join(''):p[0]+'.'+p[1]}else if(hasD){const p=s.split('.'); if(p.length>2||(p.length===2&&p[1].length===3))s=p.join('')} const n=Number(s); return Number.isFinite(n)?n:NaN}
 export default function Home(){
  const [expenses,setExpenses]=useState([]); const [form,setForm]=useState({date:today(),description:'',amount:'',scope:'Personal',category:'Alimentación',subcategory:'Supermercado',payment:'Efectivo'}); const [editing,setEditing]=useState(null); const [month,setMonth]=useState(today().slice(0,7)); const [filter,setFilter]=useState('Todos'); const [search,setSearch]=useState('');
  useEffect(()=>{try{setExpenses(JSON.parse(localStorage.getItem('gastos-v1')||'[]'))}catch{}},[]);
