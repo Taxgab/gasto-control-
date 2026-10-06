@@ -22,7 +22,19 @@ App de registro de gastos personales y de Carpintería El Roble. Next.js 16 App 
   - `categories.ts` → **fuente única** de ámbitos, categorías/subcategorías, medios de pago y orígenes, con sus etiquetas en español.
   - `format.ts` → `money()` y `parseAmount()`.
 - Persistencia actual del prototipo: `localStorage` clave `gastos-v1`. **El destino es Supabase** (Postgres + RLS); no agregues features nuevas sobre `localStorage`.
-- Todavía no hay `components/`, ni API routes, ni cliente Supabase.
+- `lib/supabase/` → clientes de Supabase:
+  - `client.ts` → navegador (`createBrowserClient`).
+  - `server.ts` → Server Components/Actions/Route Handlers (`createServerClient` + `cookies()`).
+  - `proxy.ts` → `updateSession()`; lo invoca el `proxy.ts` de la raíz.
+  - `env.ts` → `requireEnv()`. **Usá siempre acceso estático** `process.env.NEXT_PUBLIC_X`; el acceso dinámico no se inlinea en el cliente.
+- Todavía no hay `components/` ni API routes.
+
+## Supabase / entorno
+
+- Variables (`.env.example`): `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`. El `.env.local` está gitignored. **Nunca** metas `service_role`.
+- **Next 16 renombró `middleware.ts` → `proxy.ts`** y exporta `proxy()`. No crees `middleware.ts`.
+- Autenticación: email + OTP de 6 dígitos (`signInWithOtp` / `verifyOtp`). La sesión vive en cookies vía `@supabase/ssr`, nunca en `localStorage`.
+- RLS es la fuente de verdad de la seguridad; el frontend no decide permisos.
 
 ## Trampas específicas
 
