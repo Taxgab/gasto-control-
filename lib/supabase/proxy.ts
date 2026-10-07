@@ -6,9 +6,12 @@ import { requireEnv } from './env';
  * Refresca la sesión de Supabase en cada request y propaga las cookies
  * actualizadas a la respuesta.
  *
- * IMPORTANTE: no agregues código entre `createServerClient` y `getUser()`.
- * El cliente usa lazy init: hay que disparar `getUser()` para que el refresh
- * ocurra y las cookies se escriban en `setAll`.
+ * Notas críticas (doc vigente de Supabase para SSR):
+ * - Usar `getClaims()`, NO `getUser()` ni `getSession()`. `getClaims` verifica
+ *   la firma del JWT y refresca la sesión si el token está por expirar.
+ * - No agregues lógica entre `createServerClient` y `getClaims()`.
+ * - Hay que aplicar los `headers` de cache que entrega `setAll`, o un CDN
+ *   podría cachear la respuesta con `Set-Cookie` y filtrar la sesión.
  */
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
@@ -24,18 +27,21 @@ export async function updateSession(request: NextRequest) {
         getAll() {
           return request.cookies.getAll();
         },
-        setAll(cookiesToSet) {
+        setAll(cookiesToSet, headers) {
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
           supabaseResponse = NextResponse.next({ request });
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options),
+          );
+          Object.entries(headers).forEach(([key, value]) =>
+            supabaseResponse.headers.set(key, value),
           );
         },
       },
     },
   );
 
-  await supabase.auth.getUser();
+  await supabase.auth.getClaims();
 
   return supabaseResponse;
 }

@@ -2,7 +2,7 @@
 
 App de registro de gastos personales y de Carpintería El Roble. Next.js 16 App Router + TypeScript.
 
-> **Estado:** en migración desde un prototipo (`localStorage`) hacia Supabase. `app/page.js` es el prototipo **temporal** y se reemplaza por el dashboard real. La lógica de dominio ya vive tipada en `lib/`.
+> **Estado:** autenticación funcionando con Supabase (magic link). Persistencia de gastos y dashboard: próximas fases. La seguridad real está en RLS.
 
 ## Comandos
 
@@ -16,29 +16,36 @@ App de registro de gastos personales y de Carpintería El Roble. Next.js 16 App 
 
 ## Arquitectura (no busques más de lo que hay)
 
-- `app/page.js` es el prototipo cliente (`'use client'`) que se está reemplazando. `app/layout.tsx` es el layout raíz; `app/globals.css`, la única hoja de estilos.
+- Rutas (`app/`):
+  - `page.tsx` → dashboard, Server Component. Sin sesión redirige a `/login` (gate con `auth.getClaims()`).
+  - `login/page.tsx` + `login/login-form.tsx` → login por magic link.
+  - `auth/confirm/route.ts` → callback del magic link: `verifyOtp({ token_hash, type })`.
+  - `auth/signout/route.ts` → logout (POST).
+  - `layout.tsx` (raíz) y `globals.css` (única hoja de estilos).
 - `lib/` es la capa de dominio tipada, sin React:
   - `types.ts` → `Scope`, `PaymentMethod`, `ExpenseOrigin`, `Expense`, `ExpenseInput`.
   - `categories.ts` → **fuente única** de ámbitos, categorías/subcategorías, medios de pago y orígenes, con sus etiquetas en español.
   - `format.ts` → `money()` y `parseAmount()`.
-- Persistencia actual del prototipo: `localStorage` clave `gastos-v1`. **El destino es Supabase** (Postgres + RLS); no agregues features nuevas sobre `localStorage`.
 - `lib/supabase/` → clientes de Supabase:
   - `client.ts` → navegador (`createBrowserClient`).
   - `server.ts` → Server Components/Actions/Route Handlers (`createServerClient` + `cookies()`).
   - `proxy.ts` → `updateSession()`; lo invoca el `proxy.ts` de la raíz.
   - `env.ts` → `requireEnv()`. **Usá siempre acceso estático** `process.env.NEXT_PUBLIC_X`; el acceso dinámico no se inlinea en el cliente.
-- Todavía no hay `components/` ni API routes.
+- Sin `localStorage`: la sesión vive en cookies y los datos van a Supabase.
+- Todavía no hay `components/` (llegan con el dashboard).
 
 ## Supabase / entorno
 
 - Variables (`.env.example`): `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`. El `.env.local` está gitignored. **Nunca** metas `service_role`.
 - **Next 16 renombró `middleware.ts` → `proxy.ts`** y exporta `proxy()`. No crees `middleware.ts`.
-- Autenticación: email + OTP de 6 dígitos (`signInWithOtp` / `verifyOtp`). La sesión vive en cookies vía `@supabase/ssr`, nunca en `localStorage`.
+- Autenticación: **magic link**. `signInWithOtp` (cliente) → email → link a `/auth/confirm?token_hash=…&type=email` → `verifyOtp`. La sesión vive en cookies vía `@supabase/ssr`, nunca en `localStorage`.
+- Para verificar identidad usar **`auth.getClaims()`** (verifica la firma del JWT). **NUNCA** `getSession()` para autorizar.
+- El template de "Magic Link" en Supabase **debe** apuntar a `/auth/confirm` con `{{ .TokenHash }}` (el flujo PKCE de `@supabase/ssr` no lee la sesión del fragmento de URL). Requiere SMTP propio (Resend) o Pro para editar templates.
 - RLS es la fuente de verdad de la seguridad; el frontend no decide permisos.
 
 ## Trampas específicas
 
-- La cascada ámbito → categoría → subcategoría se define en `lib/categories.ts`. Agregar o renombrar categorías se hace **ahí**. (El prototipo `page.js` todavía tiene su propio `CATS` inline: es legado, se borra con el prototipo.)
+- La cascada ámbito → categoría → subcategoría se define en `lib/categories.ts`. Agregar o renombrar categorías se hace **ahí**.
 - Los ámbitos se guardan en minúscula y **valores estables**: `personal`, `carpinteria`, `father`, `other`. Las etiquetas en español ("Personal", "Carpintería El Roble") son sólo de presentación. No compares por etiqueta.
 - El parseo de importes vive en `lib/format.ts` (`parseAmount`) y está cubierto por `lib/format.test.ts`. Regla **es-AR**: el último separador manda como decimal y un punto con exactamente 3 dígitos detrás se toma como miles. **No lo reemplaces por `parseFloat`** ni borres los tests: el bug histórico convertía `"1.5"` en `15`.
 - UI, montos y fechas en **es-AR / ARS** (`Intl.NumberFormat('es-AR', {currency:'ARS'})`). Los textos visibles van en español.

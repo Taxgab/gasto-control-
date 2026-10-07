@@ -6,8 +6,11 @@ import { requireEnv } from './env';
  * Cliente Supabase para Server Components, Server Actions y Route Handlers.
  *
  * Crea un cliente **por request**: nunca lo compartas entre requests.
+ * Para verificar identidad usá `auth.getClaims()` (verifica la firma del JWT).
+ * NO uses `getSession()` para autorizar: lee la cookie sin revalidarla.
+ *
  * Si `setAll` falla (ocurre en Server Components, que no pueden escribir
- * cookies), el refresh de sesión queda a cargo de `proxy.ts`.
+ * cookies ni headers), el refresh de sesión queda a cargo de `proxy.ts`.
  */
 export async function createClient() {
   const cookieStore = await cookies();
