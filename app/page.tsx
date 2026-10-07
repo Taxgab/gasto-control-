@@ -1,7 +1,20 @@
 import { redirect } from 'next/navigation';
+import CategoryBreakdown from '@/components/category-breakdown';
+import ComparisonCard from '@/components/comparison-card';
 import ExpensesSection from '@/components/expenses-section';
-import { currentMonth } from '@/lib/dates';
-import { listExpenses } from '@/lib/expenses';
+import Insights from '@/components/insights';
+import MonthlyChart from '@/components/monthly-chart';
+import ScopeSummary from '@/components/scope-summary';
+import { scopeLabel } from '@/lib/categories';
+import { currentMonth, lastMonths } from '@/lib/dates';
+import {
+  getComparison,
+  getMonthSummary,
+  getMonthlyTrend,
+  listExpenses,
+} from '@/lib/expenses';
+import { buildInsights } from '@/lib/insights';
+import { money } from '@/lib/format';
 import { createClient } from '@/lib/supabase/server';
 
 export default async function Home() {
@@ -11,7 +24,16 @@ export default async function Home() {
 
   const email = typeof data.claims.email === 'string' ? data.claims.email : '';
   const month = currentMonth();
-  const expenses = await listExpenses(supabase, { month });
+  const months = lastMonths(month, 6);
+
+  const [expenses, summary, trend, comparison] = await Promise.all([
+    listExpenses(supabase, { month }),
+    getMonthSummary(supabase, month),
+    getMonthlyTrend(supabase, months),
+    getComparison(supabase, month),
+  ]);
+
+  const insights = buildInsights(summary, comparison);
 
   return (
     <main>
@@ -28,7 +50,40 @@ export default async function Home() {
         </form>
       </header>
 
-      <ExpensesSection expenses={expenses} />
+      <section className="stats">
+        <div>
+          <span>Gasto del mes</span>
+          <strong>{money(summary.total)}</strong>
+          <small>
+            {summary.count} {summary.count === 1 ? 'movimiento' : 'movimientos'}
+          </small>
+        </div>
+        {summary.byScope.map((row) => (
+          <div key={row.scope}>
+            <span>{scopeLabel(row.scope)}</span>
+            <b>{money(row.total)}</b>
+            <small>{row.pct.toFixed(0)}%</small>
+          </div>
+        ))}
+      </section>
+
+      <div className="grid2">
+        <ScopeSummary rows={summary.byScope} />
+        <ComparisonCard comparison={comparison} />
+      </div>
+
+      <div style={{ marginTop: 20 }}>
+        <MonthlyChart trend={trend} />
+      </div>
+
+      <div className="grid2" style={{ marginTop: 20 }}>
+        <CategoryBreakdown rows={summary.byCategory} />
+        <Insights insights={insights} />
+      </div>
+
+      <div style={{ marginTop: 20 }}>
+        <ExpensesSection expenses={expenses} />
+      </div>
     </main>
   );
 }

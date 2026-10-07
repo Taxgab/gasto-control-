@@ -36,7 +36,8 @@ App de registro de gastos personales y de Carpintería El Roble. Next.js 16 App 
 - Sin `localStorage`: la sesión vive en cookies y los datos van a Supabase.
 - `components/` → UI en cliente. `expenses-section.tsx` orquesta form + lista (estado de edición); `expense-form.tsx`; `expense-list.tsx`.
 - `app/actions/expenses.ts` → **Server Actions** (`saveExpense`, `removeExpense`). Validan server-side (zod vía `lib/expenses.ts`) y llaman `revalidatePath('/')`. Las mutaciones **no** se hacen directo desde el cliente a Supabase.
-- Todavía no hay dashboard de totales/categorías/evolución (FASE 6) ni filtros/búsqueda (FASE 7).
+- `components/` incluye el dashboard: `scope-summary`, `category-breakdown`, `monthly-chart` (SVG propio, **sin librería de charts**), `comparison-card`, `insights`. La lógica de insights vive en `lib/insights.ts` (reglas puras, testeadas).
+- Todavía no hay filtros/búsqueda ni selector de mes (FASE 7).
 
 ## Supabase / entorno
 
