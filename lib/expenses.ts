@@ -277,8 +277,9 @@ export async function updateExpense(
     })
     .eq('id', id)
     .select()
-    .single();
+    .maybeSingle();
   if (error) throw new Error(error.message);
+  if (!data) throw new Error('No se encontró el gasto (¿es tuyo?).');
   return data as Expense;
 }
 

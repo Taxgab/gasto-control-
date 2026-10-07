@@ -4,6 +4,11 @@
  * depender del timezone del servidor.
  */
 
+/** Mes actual en formato 'YYYY-MM' (UTC). */
+export function currentMonth(now: Date = new Date()): string {
+  return `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}`;
+}
+
 /** 'YYYY-MM-DD' -> 'YYYY-MM' */
 export function monthOf(date: string): string {
   return date.slice(0, 7);
