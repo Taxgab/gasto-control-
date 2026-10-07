@@ -26,6 +26,8 @@ App de registro de gastos personales y de Carpintería El Roble. Next.js 16 App 
   - `types.ts` → `Scope`, `PaymentMethod`, `ExpenseOrigin`, `Expense`, `ExpenseInput`.
   - `categories.ts` → **fuente única** de ámbitos, categorías/subcategorías, medios de pago y orígenes, con sus etiquetas en español.
   - `format.ts` → `money()` y `parseAmount()`.
+  - `dates.ts` → helpers de mes (`monthOf`, `monthRange`, `addMonths`, `lastMonths`, `monthLabel`). El mes **no** se almacena: se deriva de `expense_date`.
+  - `expenses.ts` → **toda** la data access de gastos (`listExpenses`, `getExpense`, `createExpense`, `updateExpense`, `deleteExpense`, `getMonthSummary`, `getMonthlyTrend`, `getComparison`) + validación `zod` (`expenseInputSchema`) + agregaciones puras testeables (`aggregateMonth`, `buildTrend`, `buildComparison`). **No pongas queries de Supabase dentro de componentes**: usá estas funciones pasándoles el cliente.
 - `lib/supabase/` → clientes de Supabase:
   - `client.ts` → navegador (`createBrowserClient`).
   - `server.ts` → Server Components/Actions/Route Handlers (`createServerClient` + `cookies()`).
