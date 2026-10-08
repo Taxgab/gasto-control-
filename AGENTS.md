@@ -54,6 +54,7 @@ App de registro de gastos personales y de Carpintería El Roble. Next.js 16 App 
 - Los ámbitos se guardan en minúscula y **valores estables**: `personal`, `carpinteria`, `father`, `other`. Las etiquetas en español ("Personal", "Carpintería El Roble") son sólo de presentación. No compares por etiqueta.
 - El parseo de importes vive en `lib/format.ts` (`parseAmount`) y está cubierto por `lib/format.test.ts`. Regla **es-AR**: el último separador manda como decimal y un punto con exactamente 3 dígitos detrás se toma como miles. **No lo reemplaces por `parseFloat`** ni borres los tests: el bug histórico convertía `"1.5"` en `15`.
 - UI, montos y fechas en **es-AR / ARS** (`Intl.NumberFormat('es-AR', {currency:'ARS'})`). Los textos visibles van en español.
+- Mobile-first: `app/globals.css` tiene media queries en **800px y 500px**. **No pongas `gridTemplateColumns` inline** que las pise (gana el inline y rompés el responsive); usá `.grid2`, `.stats` o una clase nueva. Targets táctiles ≥ 44px (`.iconbtn`).
 - Los IDs de gasto se generan con `crypto.randomUUID()`.
 
 ## Git
