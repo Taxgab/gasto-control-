@@ -2,7 +2,7 @@
 
 App de registro de gastos personales y de Carpintería El Roble. Next.js 16 App Router + TypeScript.
 
-> **Estado:** autenticación funcionando con Supabase (magic link). Persistencia de gastos y dashboard: próximas fases. La seguridad real está en RLS.
+> **Estado:** auth (magic link), CRUD de gastos, dashboard con filtros/búsqueda y PWA instalable. Falta: deploy a Vercel y pruebas E2E/RLS. La seguridad real está en RLS.
 
 ## Comandos
 
@@ -38,6 +38,7 @@ App de registro de gastos personales y de Carpintería El Roble. Next.js 16 App 
 - `app/actions/expenses.ts` → **Server Actions** (`saveExpense`, `removeExpense`). Validan server-side (zod vía `lib/expenses.ts`) y llaman `revalidatePath('/')`. Las mutaciones **no** se hacen directo desde el cliente a Supabase.
 - `components/` incluye el dashboard: `scope-summary`, `category-breakdown`, `monthly-chart` (SVG propio, **sin librería de charts**), `comparison-card`, `insights`. La lógica de insights vive en `lib/insights.ts` (reglas puras, testeadas).
 - Filtros del historial (mes, ámbito, categoría, búsqueda) viven en la **URL** (`/?month=YYYY-MM&scope=…&category=…&q=…`) y los resuelve el server (`app/page.tsx` → `listExpenses`). El mes elegido también manda en el dashboard (resúmenes, evolución y comparación). `components/filters-bar.tsx` sólo actualiza la query con `router.replace`.
+- PWA **instalable** (sin service worker): `app/manifest.ts` + `app/icon.png` (favicon) + `app/apple-icon.png` (iOS) + `public/icons/icon-192.png` y `icon-512.png` (Android). `viewport.themeColor` y `appleWebApp` en `app/layout.tsx`. Android exige manifest con 192 y 512, `start_url` y `display`; iOS alcanza con `apple-touch-icon` + meta `apple-mobile-web-app-*`. **No** hace falta service worker para "Agregar a pantalla de inicio" (offline/SW = V2).
 
 ## Supabase / entorno
 
