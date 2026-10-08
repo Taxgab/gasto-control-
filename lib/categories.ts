@@ -65,6 +65,15 @@ export function categoryNames(scope: Scope): string[] {
   return Object.keys(CATEGORIES[scope]);
 }
 
+/** Categorías únicas de todos los ámbitos, para el filtro sin ámbito elegido. */
+export function allCategoryNames(): string[] {
+  const names = new Set<string>();
+  for (const tree of Object.values(CATEGORIES)) {
+    for (const name of Object.keys(tree)) names.add(name);
+  }
+  return [...names].sort((a, b) => a.localeCompare(b, 'es'));
+}
+
 export function subcategoryNames(scope: Scope, category: string): string[] {
   return [...(CATEGORIES[scope][category] ?? [])];
 }

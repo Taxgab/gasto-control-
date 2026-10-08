@@ -5,29 +5,50 @@ import ExpensesSection from '@/components/expenses-section';
 import Insights from '@/components/insights';
 import MonthlyChart from '@/components/monthly-chart';
 import ScopeSummary from '@/components/scope-summary';
-import { scopeLabel } from '@/lib/categories';
+import { scopeLabel, SCOPES } from '@/lib/categories';
 import { currentMonth, lastMonths } from '@/lib/dates';
-import {
-  getComparison,
-  getMonthSummary,
-  getMonthlyTrend,
-  listExpenses,
-} from '@/lib/expenses';
+import { getComparison, getMonthSummary, getMonthlyTrend, listExpenses } from '@/lib/expenses';
 import { buildInsights } from '@/lib/insights';
 import { money } from '@/lib/format';
 import { createClient } from '@/lib/supabase/server';
+import type { Scope } from '@/lib/types';
 
-export default async function Home() {
+const MONTH_RE = /^\d{4}-\d{2}$/;
+
+interface HomeProps {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}
+
+function single(value: string | string[] | undefined): string {
+  return typeof value === 'string' ? value : '';
+}
+
+export default async function Home({ searchParams }: HomeProps) {
   const supabase = await createClient();
   const { data } = await supabase.auth.getClaims();
   if (!data?.claims) redirect('/login');
 
   const email = typeof data.claims.email === 'string' ? data.claims.email : '';
-  const month = currentMonth();
+  const params = await searchParams;
+
+  const monthParam = single(params.month);
+  const month = MONTH_RE.test(monthParam) ? monthParam : currentMonth();
+
+  const scopeParam = single(params.scope);
+  const scope = SCOPES.some((option) => option.value === scopeParam)
+    ? (scopeParam as Scope)
+    : undefined;
+
+  const categoryParam = single(params.category).trim();
+  const category = categoryParam || undefined;
+
+  const queryParam = single(params.q).trim();
+  const query = queryParam || undefined;
+
   const months = lastMonths(month, 6);
 
   const [expenses, summary, trend, comparison] = await Promise.all([
-    listExpenses(supabase, { month }),
+    listExpenses(supabase, { month, scope, category, search: query }),
     getMonthSummary(supabase, month),
     getMonthlyTrend(supabase, months),
     getComparison(supabase, month),
@@ -82,7 +103,13 @@ export default async function Home() {
       </div>
 
       <div style={{ marginTop: 20 }}>
-        <ExpensesSection expenses={expenses} />
+        <ExpensesSection
+          expenses={expenses}
+          month={month}
+          scope={scope}
+          category={category}
+          query={query}
+        />
       </div>
     </main>
   );

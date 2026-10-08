@@ -37,7 +37,7 @@ App de registro de gastos personales y de Carpintería El Roble. Next.js 16 App 
 - `components/` → UI en cliente. `expenses-section.tsx` orquesta form + lista (estado de edición); `expense-form.tsx`; `expense-list.tsx`.
 - `app/actions/expenses.ts` → **Server Actions** (`saveExpense`, `removeExpense`). Validan server-side (zod vía `lib/expenses.ts`) y llaman `revalidatePath('/')`. Las mutaciones **no** se hacen directo desde el cliente a Supabase.
 - `components/` incluye el dashboard: `scope-summary`, `category-breakdown`, `monthly-chart` (SVG propio, **sin librería de charts**), `comparison-card`, `insights`. La lógica de insights vive en `lib/insights.ts` (reglas puras, testeadas).
-- Todavía no hay filtros/búsqueda ni selector de mes (FASE 7).
+- Filtros del historial (mes, ámbito, categoría, búsqueda) viven en la **URL** (`/?month=YYYY-MM&scope=…&category=…&q=…`) y los resuelve el server (`app/page.tsx` → `listExpenses`). El mes elegido también manda en el dashboard (resúmenes, evolución y comparación). `components/filters-bar.tsx` sólo actualiza la query con `router.replace`.
 
 ## Supabase / entorno
 
