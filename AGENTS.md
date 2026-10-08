@@ -2,7 +2,7 @@
 
 App de registro de gastos personales y de Carpintería El Roble. Next.js 16 App Router + TypeScript.
 
-> **Estado:** auth (magic link), CRUD de gastos, dashboard con filtros/búsqueda y PWA instalable. Falta: deploy a Vercel y pruebas E2E/RLS. La seguridad real está en RLS.
+> **Estado:** completo y en producción (Vercel). Auth magic link, CRUD de gastos, dashboard con filtros y búsqueda, PWA instalable y RLS verificado con dos usuarios. La seguridad real está en RLS.
 
 ## Comandos
 
